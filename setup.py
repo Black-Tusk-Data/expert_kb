@@ -5,9 +5,9 @@ from pathlib import Path
 from setuptools import find_packages, setup
 
 
-lib_folder = os.path.dirname(os.path.realpath(__file__))
-with open(Path(lib_folder) / "requirements.txt") as f:
-    requirements = f.read().split()
+def load_requirements():
+    with open(Path(lib_folder) / "requirements.txt") as f:
+        return f.read().split()
     pass
 
 
@@ -19,8 +19,10 @@ setup(
     author_email="liam.tengelis@blacktuskdata.com",
     packages=find_packages(),
     package_data={
-        "": ["*.yaml"],
+        "": ["*.yaml", "requirements.txt"],
         "expert_kb": ["py.typed"],
     },
-    install_requires=requirements,
+    install_requires=[
+        "sqlite-vec",
+    ],
 )
