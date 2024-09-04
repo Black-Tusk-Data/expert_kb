@@ -107,7 +107,7 @@ class KnowledgeBase:
             return next_embedding_id
         pass
 
-    def search(self, embedding: list[float], *, k_nearest: int = 5) -> list[Fragment]:
+    def search(self, embedding: list[float], *, k: int = 5) -> list[Fragment]:
         rows = self.db.query(
             """
         SELECT ef.fragment_id,
@@ -122,7 +122,7 @@ class KnowledgeBase:
         """,
             {
                 "embedding": serialize(embedding),
-                "k": k_nearest,
+                "k": k,
             },
         )
         return [

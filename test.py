@@ -1,59 +1,58 @@
 #!/usr/bin/env python3
 
-from pathlib import Path
+import os
+import time
+
 from expert_kb.sqlite_db import SQLiteDB
 from expert_kb import KnowledgeBase, Fragment
 
 
+EMBEDDING_SIZE = 8092
+KB_PATH = "./test.kb"
+N_FRAGMENTS = int(1e4)
+
+
 def main():
+    print("starting test...")
+    if os.path.exists(KB_PATH):
+        os.remove(KB_PATH)
+        pass
+
     kb = KnowledgeBase(
-        path="./db.sq3",
-        embedding_size=100,
+        path=KB_PATH,
+        embedding_size=EMBEDDING_SIZE,
     )
 
-    # kb.add_fragments(
-    #     [
-    #         Fragment(
-    #             fragment_id=f"test-{i}",
-    #             text=f"Big text here: {i}",
-    #         )
-    #         for i in range(100)
-    #     ],
-    #     [
-    #         [1 - 1**(-i)] * 100
-    #         for i in range(100)
-    #     ]
-    # )
+    print("constructing mock data...")
+    fragments = [
+        Fragment(
+            fragment_id=f"test-{i}",
+            text=f"Big text here: {i}",
+        )
+            for i in range(N_FRAGMENTS)
+    ]
+    embeddings = [
+        [1 - 1**(-i)] * EMBEDDING_SIZE
+            for i in range(N_FRAGMENTS)
+    ]
 
+    print(f"inserting {N_FRAGMENTS} fragments...")
+    t0 = time.time()
+    kb.add_fragments(fragments, embeddings)
+    t1 = time.time()
+    print(f"inserted {N_FRAGMENTS} in {round(t1 - t0, 2)} seconds")
+
+    print("searching...")
+    t0 = time.time()
     res = kb.search(
-        [1.0] * 100,
+        [1.0] * EMBEDDING_SIZE,
+        k=10,
     )
+    t1 = time.time()
+    print(f"completed search in {round(t1 - t0, 2)} seconds")
+
+    print("\nResult:")
     print(res)
-
-    
-    # db = SQLiteDB(
-    #     Path("./db.sq3"),
-    #     vector_length=2,
-    # )
-    # max_row_id = db.query("""
-    # select max(rowid) rowid from embedding
-    # """)[0]["rowid"]
-    # if not max_row_id:
-    #     max_row_id = 0
-    #     pass
-
-    # with db.cursor() as cur:
-    #     cur.execute(f"""
-    #     insert into embedding(rowid, embedding)
-    #     values (:row_id, '[0.5, 0.5]')
-    #     """, {
-    #         "row_id": max_row_id + 1,
-    #     })
-    #     pass
-    # rows = db.query("""
-    # select * from embedding;
-    # """)
-    # print([dict(row) for row in rows])
     return
 
 

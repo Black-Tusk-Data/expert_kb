@@ -4,7 +4,7 @@ from pathlib import Path
 import sqlite3
 from string import Template
 
-import sqlite_vec
+import sqlite_vec               # type: ignore
 
 
 EMBEDDING_TABLE_TEMPLATE = Template(
