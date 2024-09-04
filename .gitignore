@@ -1,3 +1,5 @@
 *.pyc
 *.sq3
 venv/
+build/
+*.egg-info/

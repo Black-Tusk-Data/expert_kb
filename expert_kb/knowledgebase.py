@@ -20,10 +20,10 @@ def serialize(vector: list[float]) -> bytes:
 
 class KnowledgeBase:
     def __init__(
-            self,
-            *,
-            path: str,
-            embedding_size: int,
+        self,
+        *,
+        path: str,
+        embedding_size: int,
     ):
         self.embedding_size = embedding_size
         self.db = SQLiteDB(
@@ -34,17 +34,19 @@ class KnowledgeBase:
         return
 
     def _get_max_embedding_id(self) -> int:
-        max_row_id = self.db.query("""
+        max_row_id = self.db.query(
+            """
         select max(rowid) rowid from embedding
-        """)[0]["rowid"]
+        """
+        )[0]["rowid"]
         if not max_row_id:
             return 0
         return max_row_id
 
     def add_fragments(
-            self,
-            fragments: list[Fragment],
-            embeddings: list[list[float]],
+        self,
+        fragments: list[Fragment],
+        embeddings: list[list[float]],
     ) -> list[int]:
         assert len(fragments) == len(embeddings)
         return [
@@ -56,28 +58,32 @@ class KnowledgeBase:
         ]
 
     def add_fragment(
-            self,
-            *,
-            fragment_id: str,
-            text: str,
-            embedding: list[float],
-            metadata: dict | None = None,
+        self,
+        *,
+        fragment_id: str,
+        text: str,
+        embedding: list[float],
+        metadata: dict | None = None,
     ) -> int:
         metadata = metadata or {}
         next_embedding_id = self.max_embedding_id + 1
         with self.db.cursor() as cur:
-            cur.execute("""
+            cur.execute(
+                """
             INSERT INTO embedding(
               rowid, embedding
             )
             VALUES (
               :embedding_id, :embedding
             )
-            """, {
-                "embedding_id": next_embedding_id,
-                "embedding": serialize(embedding),
-            })
-            cur.execute(f"""
+            """,
+                {
+                    "embedding_id": next_embedding_id,
+                    "embedding": serialize(embedding),
+                },
+            )
+            cur.execute(
+                f"""
             INSERT INTO embedded_fragment(
               fragment_id,
               embedding_id,
@@ -89,23 +95,21 @@ class KnowledgeBase:
               :text,
               :metadata_json
             )
-            """, {
-                "fragment_id": fragment_id,
-                "text": text,
-                "embedding_id": next_embedding_id,
-                "metadata_json": json.dumps(metadata),
-            })
+            """,
+                {
+                    "fragment_id": fragment_id,
+                    "text": text,
+                    "embedding_id": next_embedding_id,
+                    "metadata_json": json.dumps(metadata),
+                },
+            )
             self.max_embedding_id = next_embedding_id
             return next_embedding_id
         pass
 
-    def search(
-            self,
-            embedding: list[float],
-            *,
-            k_nearest: int = 5
-    ) -> list[Fragment]:
-        rows = self.db.query("""
+    def search(self, embedding: list[float], *, k_nearest: int = 5) -> list[Fragment]:
+        rows = self.db.query(
+            """
         SELECT ef.fragment_id,
                distance,
                ef.text,
@@ -115,14 +119,19 @@ class KnowledgeBase:
          WHERE embedding MATCH :embedding
            AND k = :k
          ORDER BY distance
-        """, {
-            "embedding": serialize(embedding),
-            "k": k_nearest,
-        })
-        return [Fragment(
-            fragment_id=row["fragment_id"],
-            text=row["text"],
-            metadata=json.loads(row["metadata_json"] or "{}")
-        ) for row in rows]
+        """,
+            {
+                "embedding": serialize(embedding),
+                "k": k_nearest,
+            },
+        )
+        return [
+            Fragment(
+                fragment_id=row["fragment_id"],
+                text=row["text"],
+                metadata=json.loads(row["metadata_json"] or "{}"),
+            )
+            for row in rows
+        ]
 
     pass

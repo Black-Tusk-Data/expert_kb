@@ -7,11 +7,13 @@ from string import Template
 import sqlite_vec
 
 
-EMBEDDING_TABLE_TEMPLATE = Template("""
+EMBEDDING_TABLE_TEMPLATE = Template(
+    """
 create virtual table embedding using vec0(
   embedding float[${VECTOR_LENGTH}]
 )
-""")
+"""
+)
 
 SCHEMA_PATH = Path(os.path.dirname(__file__)) / "./schema.sql"
 
@@ -35,9 +37,11 @@ class SQLiteDB:
                     pass
 
                 cur.executescript(
-                    EMBEDDING_TABLE_TEMPLATE.substitute({
-                        "VECTOR_LENGTH": vector_length,
-                    })
+                    EMBEDDING_TABLE_TEMPLATE.substitute(
+                        {
+                            "VECTOR_LENGTH": vector_length,
+                        }
+                    )
                 )
                 pass
             pass
