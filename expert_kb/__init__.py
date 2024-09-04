@@ -1,1 +1,1 @@
-from .knowledgebase import KnowledgeBase
+from .knowledgebase import KnowledgeBase, Fragment

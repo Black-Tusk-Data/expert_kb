@@ -1,8 +1,16 @@
 import json
 from pathlib import Path
 import struct
+from typing import NamedTuple
 
 from expert_kb.sqlite_db import SQLiteDB
+
+
+class Fragment(NamedTuple):
+    fragment_id: str
+    text: str
+    metadata: dict | None = None
+    pass
 
 
 def serialize(vector: list[float]) -> bytes:
@@ -32,6 +40,20 @@ class KnowledgeBase:
         if not max_row_id:
             return 0
         return max_row_id
+
+    def add_fragments(
+            self,
+            fragments: list[Fragment],
+            embeddings: list[list[float]],
+    ) -> list[int]:
+        assert len(fragments) == len(embeddings)
+        return [
+            self.add_fragment(
+                embedding=embedding,
+                **fragment._asdict(),
+            )
+            for fragment, embedding in zip(fragments, embeddings)
+        ]
 
     def add_fragment(
             self,
@@ -75,5 +97,32 @@ class KnowledgeBase:
             })
             self.max_embedding_id = next_embedding_id
             return next_embedding_id
+        pass
+
+    def search(
+            self,
+            embedding: list[float],
+            *,
+            k_nearest: int = 5
+    ) -> list[Fragment]:
+        rows = self.db.query("""
+        SELECT ef.fragment_id,
+               distance,
+               ef.text,
+               ef.metadata_json
+          FROM embedding e
+               JOIN embedded_fragment ef ON ef.embedding_id = e.rowid
+         WHERE embedding MATCH :embedding
+           AND k = :k
+         ORDER BY distance
+        """, {
+            "embedding": serialize(embedding),
+            "k": k_nearest,
+        })
+        return [Fragment(
+            fragment_id=row["fragment_id"],
+            text=row["text"],
+            metadata=json.loads(row["metadata_json"] or "{}")
+        ) for row in rows]
 
     pass

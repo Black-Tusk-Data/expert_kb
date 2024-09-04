@@ -2,7 +2,7 @@
 
 from pathlib import Path
 from expert_kb.sqlite_db import SQLiteDB
-from expert_kb import KnowledgeBase
+from expert_kb import KnowledgeBase, Fragment
 
 
 def main():
@@ -11,11 +11,26 @@ def main():
         embedding_size=100,
     )
 
-    kb.add_fragment(
-        fragment_id="test-1",
-        text="Big text here",
-        embedding=[0.1] * 100,
+    # kb.add_fragments(
+    #     [
+    #         Fragment(
+    #             fragment_id=f"test-{i}",
+    #             text=f"Big text here: {i}",
+    #         )
+    #         for i in range(100)
+    #     ],
+    #     [
+    #         [1 - 1**(-i)] * 100
+    #         for i in range(100)
+    #     ]
+    # )
+
+    res = kb.search(
+        [1.0] * 100,
     )
+    print(res)
+
+    
     # db = SQLiteDB(
     #     Path("./db.sq3"),
     #     vector_length=2,
