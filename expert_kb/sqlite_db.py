@@ -1,10 +1,11 @@
 import contextlib
+import logging
 import os
 from pathlib import Path
 import sqlite3
 from string import Template
 
-import sqlite_vec               # type: ignore
+import sqlite_vec  # type: ignore
 
 
 EMBEDDING_TABLE_TEMPLATE = Template(
@@ -21,6 +22,7 @@ SCHEMA_PATH = Path(os.path.dirname(__file__)) / "./schema.sql"
 class SQLiteDB:
     def __init__(self, db_path: Path, *, vector_length: int):
         is_fresh = not db_path.exists()
+        logging.debug("building a new database")
         self.db_path = db_path
         self.dbcon = sqlite3.connect(db_path)
 
